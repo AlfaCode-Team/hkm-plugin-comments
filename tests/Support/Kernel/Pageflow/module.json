@@ -1,0 +1,9 @@
+{
+    "name": "pageflow-stub",
+    "version": "0.0.0",
+    "solves": "http.pageflow",
+    "type": "module",
+    "requires": [],
+    "exposes": [],
+    "config": []
+}

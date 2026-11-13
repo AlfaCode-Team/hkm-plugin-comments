@@ -1,0 +1,108 @@
+{
+    "name": "comments",
+    "version": "0.1.0",
+    "kernel": "^1.13.1",
+    "solves": "comment.discussion",
+    "type": "module",
+
+    "requires": ["database.management", "post.publishing"],
+
+    "exposes": [
+        "Plugins\\Comments\\API\\Contracts\\CommentServiceContract"
+    ],
+
+    "lang": { "path": "resources/lang", "namespace": "comments", "global": false },
+
+    "groups": [
+        {
+            "prefix": "/api/comments",
+            "routes": [
+                {
+                    "method": "GET",
+                    "path": "/form-token",
+                    "handler": "Plugins\\Comments\\Infrastructure\\Http\\Controllers\\CommentController@formToken",
+                    "name": "comments.form_token"
+                }
+            ],
+            "groups": [
+                {
+                    "prefix": "/posts/{postId:alphanum}",
+                    "routes": [
+                        {
+                            "method": "GET",
+                            "path": "",
+                            "handler": "Plugins\\Comments\\Infrastructure\\Http\\Controllers\\CommentController@thread",
+                            "name": "comments.thread"
+                        },
+                        {
+                            "method": "POST",
+                            "path": "",
+                            "handler": "Plugins\\Comments\\Infrastructure\\Http\\Controllers\\CommentController@submit",
+                            "name": "comments.submit",
+                            "filters": ["comments.throttle"]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "prefix": "/api/admin/comments",
+            "name": "comments.admin.",
+            "filters": ["comments.moderate"],
+            "routes": [
+                {
+                    "method": "GET",
+                    "path": "",
+                    "handler": "Plugins\\Comments\\Infrastructure\\Http\\Controllers\\CommentAdminController@index",
+                    "name": "index"
+                },
+                {
+                    "method": "POST",
+                    "path": "/bulk",
+                    "handler": "Plugins\\Comments\\Infrastructure\\Http\\Controllers\\CommentAdminController@bulk",
+                    "name": "bulk"
+                },
+                {
+                    "method": "GET",
+                    "path": "/{id:alphanum}",
+                    "handler": "Plugins\\Comments\\Infrastructure\\Http\\Controllers\\CommentAdminController@show",
+                    "name": "show"
+                },
+                {
+                    "method": "PATCH",
+                    "path": "/{id:alphanum}",
+                    "handler": "Plugins\\Comments\\Infrastructure\\Http\\Controllers\\CommentAdminController@updateStatus",
+                    "name": "status"
+                },
+                {
+                    "method": "PUT",
+                    "path": "/{id:alphanum}",
+                    "handler": "Plugins\\Comments\\Infrastructure\\Http\\Controllers\\CommentAdminController@updateBody",
+                    "name": "update"
+                },
+                {
+                    "method": "DELETE",
+                    "path": "/{id:alphanum}",
+                    "handler": "Plugins\\Comments\\Infrastructure\\Http\\Controllers\\CommentAdminController@destroy",
+                    "name": "destroy"
+                }
+            ]
+        }
+    ],
+
+    "emits": ["comment.submitted", "comment.approved"],
+    "listens": [],
+
+    "documentation": "The Comments plugin — owns the comment.discussion domain: reader comments on a Plugins\\Posts post. A comment may be submitted only when PostServiceContract::find($postId) returns a post whose status is 'published' AND commentsEnabled is true. Comments thread up to COMMENTS_MAX_DEPTH levels (default 3); a reply to an already-maximally-nested comment attaches to that comment's own parent instead of nesting further. Moderation status (pending | approved | spam | trash) is a STORED column — unlike Posts' computed status — decided by COMMENTS_MODERATION ('all' | 'first' | 'none') unless the submitter already holds the moderate permission, in which case the comment is auto-approved. A spam guard runs on every submission: a honeypot field and an excess of links in the body both silently resolve to the 'spam' status (never an error); a stale or too-fast signed form token, an unknown parent, and a repeated post+email+body within 10 minutes are all rejected with a 422; a per-IP-hash rate limit (CachePort, best-effort) is enforced both by the plugin's own comments.throttle route filter (HTTP 429, on the submit route) and inside the service itself (422), so a caller that invokes the published contract directly is still protected. The public read surface (thread/count/counts) returns ONLY approved comments and NEVER exposes an author's email, IP or user agent; the admin surface (list/find/moderate/update/delete/bulkModerate), gated by the plugin's own comments.moderate route filter (401 for a guest, 403 without COMMENTS_MODERATE_PERMISSION), may show the email. Rows live in the request's database — the migration ships in both database/migrations and database/tenant-template, so the plugin works with or without Tenancy. Routes: GET/POST /api/comments/posts/{postId}, GET /api/comments/form-token, and the admin CRUD under /api/admin/comments (deliberately NOT under /api/posts, to avoid colliding with Posts' own /api/posts/{kind}/{slug} route).",
+
+    "config": [
+        { "key": "COMMENTS_SECRET", "type": "string", "required": false },
+        { "key": "APP_KEY", "type": "string", "required": false },
+        { "key": "COMMENTS_MODERATION", "type": "string", "required": false, "default": "first" },
+        { "key": "COMMENTS_MODERATE_PERMISSION", "type": "string", "required": false, "default": "comments:moderate" },
+        { "key": "COMMENTS_MIN_SECONDS", "type": "int", "required": false, "default": 3 },
+        { "key": "COMMENTS_MAX_LINKS", "type": "int", "required": false, "default": 2 },
+        { "key": "COMMENTS_MAX_DEPTH", "type": "int", "required": false, "default": 3 },
+        { "key": "COMMENTS_RATE_PER_MINUTE", "type": "int", "required": false, "default": 5 }
+    ]
+}

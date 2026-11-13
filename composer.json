@@ -1,0 +1,64 @@
+{
+    "name": "alfacode-team/hkm-plugin-comments",
+    "description": "HKM Kernel plugin providing 'comment.discussion' — reader comments on a Posts plugin post.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "hkm-kernel",
+        "plugin",
+        "php",
+        "comment.discussion",
+        "comments",
+        "moderation"
+    ],
+    "require": {
+        "php": ">=8.4",
+        "alfacode-team/php-service-platform": "dev-master",
+        "alfacode-team/hkm-plugin-posts": "dev-main"
+    },
+    "autoload": {
+        "psr-4": {
+            "Plugins\\Comments\\": ""
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\Unit\\Plugins\\Comments\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11 || ^12 || ^13"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/AlfaCode-Team/hkm-kernel"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/AlfaCode-Team/hkm-plugin-posts"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/AlfaCode-Team/http"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/AlfaCode-Team/php-io-cli"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/AlfaCode-Team/Let-Migrate"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/hakrichTech/bindIt"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/hakrichTech/type-alias"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
